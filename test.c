@@ -2,8 +2,9 @@
 #include "vec.h"
 #include <stdint.h>
 
-#define len(x) (int)( sizeof(x) / sizeof((x)[0]) )
 #define expect(x) if (!(x)) __builtin_trap()
+#define len(x) (int)( sizeof(x) / sizeof((x)[0]) )
+#define K len((struct State){0}.r)
 
 typedef vec(K,   __fp16) F16;
 typedef vec(K, uint16_t) U16;

@@ -1,10 +1,7 @@
 #pragma once
-#include "vec.h"
-
-#define K 8
 
 struct State {
-    vec(K,__fp16) r,g,b,a;
+    __fp16 __attribute__((vector_size(16))) r,g,b,a;
 };
 
 struct Effect {

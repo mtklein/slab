@@ -3,14 +3,14 @@
 #include <stdint.h>
 
 #define len(x) (int)( sizeof(x) / sizeof((x)[0]) )
+#define expect(x) if (!(x)) __builtin_trap()
 
 typedef vec(K,   __fp16) F16;
 typedef vec(K, uint16_t) U16;
 typedef vec(K, uint32_t) U32;
 
-struct Color {
-    __fp16 r,g,b,a;
-};
+
+struct Color { __fp16 r,g,b,a; };
 
 static struct State uniform_color(struct State st, int end, void *ctx) {
     (void)end;
@@ -25,6 +25,15 @@ static struct State uniform_color(struct State st, int end, void *ctx) {
     st.a = splat(F16, c[3]);
     return st;
 }
+static void test_uniform_color(void) {
+    struct Color red = { 1,0,0,1 };
+    struct Effect effect[] = {
+        {uniform_color, &red},
+    };
+    run(effect,len(effect), 42);
+    // TODO: write this out somewhere, check
+}
+
 
 static struct State load_rgba_8888(struct State st, int end, void *ctx) {
     vec(K, uint32_t) rgba = {0};
@@ -39,27 +48,38 @@ static struct State load_rgba_8888(struct State st, int end, void *ctx) {
     st.a = cast(F16, cast(U16, (rgba >> 24) & 0xff)) * (__fp16)(1/255.0f);
     return st;
 }
+static void test_load_rgba_8888(void) {
+    uint32_t rgba[] = {
+        0xffaaccee, 0xffff0000, 0xff00ff00, 0xff0000ff,
+        0xffaaccee, 0xffff0000, 0xff00ff00, 0xff0000ff,
+        0xffaaccee,
+    };
+    struct Effect effect[] = {
+        {load_rgba_8888, rgba},
+    };
+    run(effect,len(effect), len(rgba));
+    // TODO: write this out somewhere, check
+}
+
+static struct State count_steps(struct State st, int end, void *ctx) {
+    int *steps = ctx;
+    *steps += (end & (K-1)) ? 1 : K;
+    return st;
+}
+static void test_count_steps(void) {
+    for (int i = 0; i < 42; i++) {
+        int steps = 0;
+        struct Effect effect[] = {
+            {count_steps, &steps},
+        };
+        run(effect,len(effect), i);
+        expect(steps == i);
+    }
+}
 
 int main(void) {
-    {
-        struct Color red = { 1,0,0,1 };
-        struct Effect effect[] = {
-            {uniform_color, &red},
-        };
-        run(effect,len(effect),42);
-    }
-
-    {
-        uint32_t rgba[] = {
-            0xffaaccee, 0xffff0000, 0xff00ff00, 0xff0000ff,
-            0xffaaccee, 0xffff0000, 0xff00ff00, 0xff0000ff,
-            0xffaaccee,
-        };
-        struct Effect effect[] = {
-            {load_rgba_8888, rgba},
-        };
-        run(effect,len(effect), len(rgba));
-    }
-
+    test_count_steps();
+    test_uniform_color();
+    test_load_rgba_8888();
     return 0;
 }

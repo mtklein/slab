@@ -1,16 +1,13 @@
 #include "slab.h"
 
-void run(struct Effect const effect[], int effects, int n) {
-    for (int i = 0; i < n/K*K; i += K) {
+void run(struct Effect const effect[], int const effects, int n) {
+    for (int end = 0; n;) {
+        end += n < K ? 1 : K;
+        n   -= n < K ? 1 : K;
+
         struct State st = {0};
-        for (struct Effect const *e = effect, *end = e+effects; e != end; e++) {
-            st = e->fn(st, i + K, e->ctx);
-        }
-    }
-    for (int i = n/K*K; i < n; i += 1) {
-        struct State st = {0};
-        for (struct Effect const *e = effect, *end = e+effects; e != end; e++) {
-            st = e->fn(st, i + 1, e->ctx);
+        for (int i = 0; i < effects; i++) {
+            st = effect[i].fn(st, end, effect[i].ctx);
         }
     }
 }

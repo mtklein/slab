@@ -1,5 +1,6 @@
 #include "expect.h"
 #include "slab.h"
+#include <stdbool.h>
 #include <stdlib.h>
 
 #define len(x) (int)(sizeof x / sizeof x[0])
@@ -11,7 +12,7 @@ static void test(void (*fn)(struct slab*)) {
 }
 
 static void *ctx = &ctx;
-static _Bool key_eq(intptr_t k1, intptr_t k2, void *arg) {
+static _Bool key_eq(int k1, int k2, void *arg) {
     expect(arg == ctx);
     return k1 == k2;
 }
@@ -46,16 +47,16 @@ static void slab_holds_null(struct slab *s) {
 
 static void slab_holds_self(struct slab *s) {
     void *val = NULL;
-    expect(!slab_lookup(s,(intptr_t)s,&val, key_eq,ctx) && val == NULL);
+    expect(!slab_lookup(s,42,&val, key_eq,ctx) && val == NULL);
 
     int prev=0, len=0;
-    while (slab_insert(s,(intptr_t)s,s)) {
+    while (slab_insert(s,42,s)) {
         prev = len;
         len = slab_len(s);
     }
     expect(len == prev+1);
 
-    expect(slab_lookup(s,(intptr_t)s,&val, key_eq,ctx) && val == s);
+    expect(slab_lookup(s,42,&val, key_eq,ctx) && val == s);
 }
 
 static void slab_holds_its_own_function_pointers(struct slab *s) {

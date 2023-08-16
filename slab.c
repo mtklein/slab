@@ -8,19 +8,15 @@ struct slab {
     void    *val[M];
 };
 
-static void *not_yet_full(void) {
-    return (void*)1;
-}
-
 struct slab *slab_alloc(void) {
     struct slab *s = calloc(1, sizeof *s);
-    s->val[M-1] = not_yet_full();
+    s->val[M-1] = (void*)1;
     return s;
 }
 
 int slab_len(struct slab const *s) {
-    return s->val[M-1] == not_yet_full() ? (int)s->key[M-1]
-                                         : M;
+    return s->val[M-1] == (void*)1 ? (int)s->key[M-1]
+                                   : M;
 }
 
 bool slab_insert(struct slab *s, intptr_t key, void *val) {

@@ -11,7 +11,7 @@ static void test(void (*fn)(struct slab*)) {
     free(s);
 }
 
-static _Bool key_eq(void *k1, void *k2, void *ctx) {
+static _Bool ptr_eq(void *k1, void *k2, void *ctx) {
     (void)ctx;
     return k1 == k2;
 }
@@ -21,26 +21,25 @@ static void basics(struct slab *s) {
 
     int jenny[] = {4,1,2, 8,6,7, 5,3,0,9};
 
-    int n = 0;
+    int M = 0;
     for (int i = 0; i < len(jenny); i++) {
-        n += slab_insert(s, (void*)(intptr_t)jenny[i], jenny+i);
+        M += slab_insert(s, (void*)(intptr_t)jenny[i], jenny+i);
     }
+    expect(0 < M && M < len(jenny));
 
-    expect(0 < n && n < len(jenny));
-
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < M; i++) {
         void *val = NULL;
-        expect(slab_lookup(s, (void*)(intptr_t)jenny[i], &val, key_eq, NULL) && val == jenny+i);
+        expect( slab_lookup(s, (void*)(intptr_t)jenny[i], &val, ptr_eq,NULL) && val == jenny+i);
     }
-    for (int i = n; i < len(jenny); i++) {
+    for (int i = M; i < len(jenny); i++) {
         void *val = NULL;
-        expect(!slab_lookup(s, (void*)(intptr_t)jenny[i], &val, key_eq, NULL) && val == NULL);
+        expect(!slab_lookup(s, (void*)(intptr_t)jenny[i], &val, ptr_eq,NULL) && val == NULL);
     }
 }
 
 static void slab_holds_self(struct slab *s) {
     void *val = NULL;
-    expect(!slab_lookup(s,s,&val,key_eq,NULL) && val == NULL);
+    expect(!slab_lookup(s,s,&val, ptr_eq,NULL) && val == NULL);
 
     int prev=0, len=0;
     while (slab_insert(s,s,s)) {
@@ -49,7 +48,7 @@ static void slab_holds_self(struct slab *s) {
     }
     expect(len == prev+1);
 
-    expect(slab_lookup(s,s,&val,key_eq,NULL) && val == s);
+    expect(slab_lookup(s,s,&val, ptr_eq,NULL) && val == s);
 }
 
 int main(void) {

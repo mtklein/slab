@@ -9,8 +9,7 @@ struct slab {
 };
 
 static void *not_yet_full(void) {
-    static char const unique_address = 0;
-    return (union {void const *cptr; void *ptr;}){&unique_address}.ptr;
+    return (void*)1;
 }
 
 struct slab *slab_alloc(void) {

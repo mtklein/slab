@@ -11,17 +11,18 @@ struct slab {
 
 struct slab *slab_alloc(void) {
     struct slab *s = calloc(1, sizeof *s);
-    s->val[M-1] = s;
+    s->val[M-1] = s->val;
     return s;
 }
 
 int slab_len(struct slab const *s) {
-    return s->val[M-1] == s ? (int)(intptr_t)s->key[M-1]
-                            : M;
+    return s->val[M-1] == s->val ? (int)(intptr_t)s->key[M-1]
+                                 : M;
 }
 
-bool slab_insert(struct slab       *s, void *key, void  *val) {
-    for (int const len = slab_len(s); len < M;) {
+bool slab_insert(struct slab *s, void *key, void  *val) {
+    int const len = slab_len(s);
+    if (len < M) {
         s->key[M-1] = (void*)(intptr_t)(len+1);
         s->key[len] = key;
         s->val[len] = val;

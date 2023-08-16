@@ -37,6 +37,13 @@ static void basics(struct slab *s) {
     }
 }
 
+static void slab_holds_null(struct slab *s) {
+    void *val = s;
+    expect(!slab_lookup(s,42,&val, key_eq,NULL) && val == s);
+    expect( slab_insert(s,42,NULL) && slab_len(s) == 1);
+    expect( slab_lookup(s,42,&val, key_eq,NULL) && val == NULL);
+}
+
 static void slab_holds_self(struct slab *s) {
     void *val = NULL;
     expect(!slab_lookup(s,(intptr_t)s,&val, key_eq,NULL) && val == NULL);
@@ -71,6 +78,7 @@ static void slab_holds_its_own_function_pointers(struct slab *s) {
 
 int main(void) {
     test(basics);
+    test(slab_holds_null);
     test(slab_holds_self);
     test(slab_holds_its_own_function_pointers);
     return 0;

@@ -1,5 +1,4 @@
 #include "slab.h"
-#include <stdbool.h>
 #include <stdlib.h>
 
 #define M 8
@@ -30,11 +29,31 @@ bool slab_insert(struct slab *s, intptr_t key, void *val) {
     return false;
 }
 
+struct lookup_ctx {
+    intptr_t key;
+    void   **val;
+    bool   (*eq)(intptr_t, intptr_t, void*);
+    void    *ctx;
+};
+
+static bool lookup(intptr_t key, void *val, void *ctx) {
+    struct lookup_ctx *lookup_ctx = ctx;
+    if (lookup_ctx->eq(key, lookup_ctx->key, lookup_ctx->ctx)) {
+        *lookup_ctx->val = val;
+        return true;
+    }
+    return false;
+}
+
 bool slab_lookup(struct slab const *s, intptr_t key, void **val,
                  bool(*eq)(intptr_t, intptr_t, void*), void *ctx) {
+    struct lookup_ctx lookup_ctx = {key,val,eq,ctx};
+    return slab_walk(s, lookup, &lookup_ctx);
+}
+
+bool slab_walk(struct slab const *s, bool (*fn)(intptr_t key, void *val, void *ctx), void *ctx) {
     for (int i = 0; i < slab_len(s); i++) {
-        if (eq(key, s->key[i], ctx)) {
-            *val = s->val[i];
+        if (fn(s->key[i], s->val[i], ctx)) {
             return true;
         }
     }

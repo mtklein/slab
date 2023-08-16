@@ -1,6 +1,5 @@
 #include "expect.h"
 #include "slab.h"
-#include <stdbool.h>
 #include <stdlib.h>
 
 #define len(x) (int)(sizeof x / sizeof x[0])

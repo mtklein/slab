@@ -51,8 +51,27 @@ static void slab_holds_self(struct slab *s) {
     expect(slab_lookup(s,s,&val, ptr_eq,NULL) && val == s);
 }
 
+static void slab_holds_its_own_function_pointers(struct slab *s) {
+    void *val = NULL;
+    expect(!slab_lookup(s, (void*)1, &val, ptr_eq,NULL) && val == NULL);
+    expect(!slab_lookup(s, (void*)2, &val, ptr_eq,NULL) && val == NULL);
+    expect(!slab_lookup(s, (void*)3, &val, ptr_eq,NULL) && val == NULL);
+    expect(!slab_lookup(s, (void*)4, &val, ptr_eq,NULL) && val == NULL);
+
+    slab_insert(s, (void*)1, (void*)slab_insert);
+    slab_insert(s, (void*)2, (void*)slab_lookup);
+    slab_insert(s, (void*)3, (void*)slab_len);
+    slab_insert(s, (void*)4, (void*)slab_alloc);
+
+    expect(slab_lookup(s, (void*)1, &val, ptr_eq,NULL) && val == (void*)slab_insert);
+    expect(slab_lookup(s, (void*)2, &val, ptr_eq,NULL) && val == (void*)slab_lookup);
+    expect(slab_lookup(s, (void*)3, &val, ptr_eq,NULL) && val == (void*)slab_len);
+    expect(slab_lookup(s, (void*)4, &val, ptr_eq,NULL) && val == (void*)slab_alloc);
+}
+
 int main(void) {
     test(basics);
     test(slab_holds_self);
+    test(slab_holds_its_own_function_pointers);
     return 0;
 }

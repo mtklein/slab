@@ -12,7 +12,7 @@ static void test(void (*fn)(struct slab*)) {
 }
 
 static void *ctx = &ctx;
-static _Bool key_eq(int k1, int k2, void *arg) {
+static bool key_eq(int k1, int k2, void *arg) {
     expect(arg == ctx);
     return k1 == k2;
 }
@@ -39,10 +39,18 @@ static void basics(struct slab *s) {
 }
 
 static void slab_holds_null(struct slab *s) {
-    void *val = s;
-    expect(!slab_lookup(s,42,&val, key_eq,ctx) && val == s);
-    expect( slab_insert(s,42,NULL) && slab_len(s) == 1);
-    expect( slab_lookup(s,42,&val, key_eq,ctx) && val == NULL);
+    int key = 42;
+    {
+        void *val = s;
+        expect(!slab_lookup(s,key,&val, key_eq,ctx) && val == s);
+        expect( slab_insert(s,key,NULL) && slab_len(s) == 1);
+        expect( slab_lookup(s,key,&val, key_eq,ctx) && val == NULL);
+    }
+    while (slab_insert(s,++key,NULL)) {}
+    {
+        void *val = s;
+        expect(slab_lookup(s,--key,&val, key_eq,ctx) && val == NULL);
+    }
 }
 
 static void slab_holds_self(struct slab *s) {

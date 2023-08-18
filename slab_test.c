@@ -46,11 +46,17 @@ static void slab_holds_null(struct slab *s) {
         expect( slab_insert(s,key,NULL) && slab_len(s) == 1);
         expect( slab_lookup(s,key,&val, key_eq,ctx) && val == NULL);
     }
-    while (slab_insert(s,++key,NULL)) {}
+
+    int M = 1;
+    while (slab_insert(s,++key,NULL)) {
+        M++;
+    }
+
     {
         void *val = s;
         expect(slab_lookup(s,--key,&val, key_eq,ctx) && val == NULL);
     }
+    expect(slab_len(s) == M);
 }
 
 static void slab_holds_self(struct slab *s) {
